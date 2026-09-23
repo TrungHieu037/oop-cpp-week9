@@ -2,6 +2,57 @@
 #include <string>
 using namespace std;
 
+struct Food {
+    string id;
+    string name;
+    double price;
+    int quantity;
+    // Nhap thong tin mon an
+    void input() {
+        cout << "Nhap ID mon an: ";
+        getline(cin, id);
+        cout << "Nhap ten mon an: ";
+        getline(cin, name);
+        cout << "Nhap gia mon an: ";
+        cin >> price;
+        cout << "Nhap so luong mon an: ";
+        cin >> quantity;
+        cin.ignore();
+    }
+
+    void output() const {
+        cout << "\t[Ma: " << id << " | Ten: " << name 
+             << " | Gia: " << price << " | Ton kho: " << quantity << "]\n";
+    }
+    
+
+};
+
+struct Order {
+    string id;
+    string customerName;
+    string address;
+    Food food;
+    int foods[100];
+    int foodCount = 0;
+    int quantity;
+    string status; // Cho giao, hoan thanh, huy
+
+    // Tinh tong tien cua don hang
+    double getTotalPrice() const {
+        return food.price * quantity;
+    }
+
+    void output() const {
+        cout << "------------------------------------\n";
+        cout << "Ma don: " << id << " | Khach hang: " << customerName << "\n";
+        cout << "Dia chi: " << address << "\n";
+        cout << "Mon dat: " << food.name << " x " << quantity << "\n";
+        cout << "Tong tien: " << getTotalPrice() << " VND | Trang thai: " << status << "\n";
+        cout << "------------------------------------\n";
+    }
+};
+
 struct nhaHang {
     string name;
     string address;
@@ -11,25 +62,155 @@ struct nhaHang {
     Order orders[100];
     int orderCount = 0;
 
+    // Nhap thong tin cua hang
+    void inputInfo() {
+        cout << "Nhap ten cua hang: ";
+        getline(cin, name);
+        cout << "Nhap dia chi: ";
+        getline(cin, address);
+        cout << "Nhap so dien thoai: ";
+        getline(cin, phone);
+    }
+
+    // Them mon an moi
+    void addFood() {
+        if (foodCount >= 100) return;
+        foods[foodCount].input();
+        foodCount++;
+    }
+
+    // Hien thi danh sach mon an
+    void showMenu() const {
+        cout << "\t \n=== MENU CUA HANG ===\n";
+        for (int i = 0; i < foodCount; i++) {
+            foods[i].output();
+        }
+    }
+
+    // Tim mon an theo ma hoac ten
+    void findFood(string keyword) const {
+        for (int i = 0; i < foodCount; i++) {
+            if (foods[i].id == keyword || foods[i].name == keyword) {
+                foods[i].output();
+                return;
+            }
+        }
+        cout << "Khong tim thay mon an!\n";
+    }
+
+    // Cap nhat gia hoac so luong mon
+    void updateFood(string foodId, double newPrice, int newQty) {
+        for (int i = 0; i < foodCount; i++) {
+            if (foods[i].id == foodId) {
+                foods[i].price = newPrice;
+                foods[i].quantity = newQty;
+                cout << "Cap nhat thanh cong!\n";
+                return;
+            }
+        }
+        cout << "Khong tim thay ma mon an!\n";
+    }
+    
+    // Tao don hang va ktra kho
+    void createOrder(){
+        if (orderCount >= 100) return;
+
+        string foodId;
+        int orderQty;
+        cout << " Nhap ma mon muon dat: ";
+        getline(cin, foodId);
+
+        int foodIndex = -1;
+        for (int i = 0; i < foodCount; i++) {
+            if (foods[i].id == foodId) {
+                foodIndex = i;
+                break;
+            }
+        }
+
+        if (foodIndex == -1 || foods[foodIndex].quantity < 1) {
+            cout << "Mon an khong ton tai hoac het hang\n";
+            return;
+        }
+
+        cout << "Nhap so luong muon dat: ";
+        cin >> orderQty;
+        cin.ignore();
+
+        if (orderQty > foods[foodIndex].quantity) {
+            cout << "So luong dat vuot qua ton kho\n";
+            return;
+        }
+        foods[foodIndex].quantity -= orderQty;
+
+        Order ord;
+        cout << "Nhap ma don hang: ";
+        getline(cin, ord.id);
+        cout << "Nhap ten khach hang: ";
+        getline(cin, ord.customerName);
+        cout << "Nhap dia chi: ";
+        getline(cin, ord.address);
+        ord.food = foods[foodIndex];
+        ord.quantity = orderQty;
+        ord.status = "Cho giao";
+
+        orders[orderCount++] = ord;
+        cout << "Dat hang thanh cong \n";
+    }
+
+    // Hien thi danh sach don hang
+    void showOrders() const {
+        cout << "\n=== DANH SACH DON HANG ===\n";
+        for (int i = 0; i < orderCount; i++) {
+            orders[i].output();
+        }
+    }
+
+    // Tim don hang theo ma
+    void findOrder(string orderId) const {
+        for (int i = 0; i < orderCount; i++) {
+            if (orders[i].id == orderId) {
+                orders[i].output();
+                return;
+            }
+        }
+        cout << "Khong tim thay don hang!\n";
+    }
+
+    // Thong ke doanh thu don hoan thanh
+    void reportRevenue() const {
+        double total = 0;
+        for (int i = 0; i < orderCount; i++) {
+            if (orders[i].status == "Hoan thanh") {
+                total += orders[i].getTotalPrice();
+            }
+        }
+        cout << "\nTong doanh thu cac don da Hoan thanh: " << total << " VND\n";
+    }
+    
+    // Cap nhat trang thai don hang
+    void updateOrderStatus(string orderId, string newStatus) {
+        for (int i = 0; i < orderCount; i++) {
+            if (orders[i].id == orderId) {
+                orders[i].status = newStatus;
+                cout << "Cap nhat trang thai don thanh cong!\n";
+                return;
+            }
+        }
+        cout << "Khong tim thay don hang!\n";
+    }
 };
 
-struct Food {
-    string id;
-    string name;
-    double price;
-    int quality;
-};
-
-struct Order {
-    string id;
-    string customerName;
-    string address;
-    int foods[100];
-    int foodCount = 0;
-    int quality;
-    string status;
-};
 int main()
 {
+    nhaHang nh;
+    nh.inputInfo(); 
+    nh.addFood();
+    nh.showMenu();
+    nh.createOrder();
+    nh.showOrders();
+    nh.updateOrderStatus("SHOPEE123", "Hoan thanh");
+    nh.reportRevenue();
 
+    return 0;
 }
